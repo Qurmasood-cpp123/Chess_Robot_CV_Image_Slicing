@@ -1,0 +1,1 @@
+# Chess_Robot_CV_Image_Slicing
