@@ -8,7 +8,7 @@ import pandas as pd
 
 
 #Storing the Chess Board Image
-img =cv2.imread("E:/IEEE_Chees_Arm_Project/IEEE_Into_Task_Chess_Arm/board1.jpg")
+img =cv2.imread("board1.jpg")
 resize_img=cv2.resize(img,(800,800))  # Changing The resolution
 
 rgb_image=cv2.cvtColor(resize_img,cv2.COLOR_BGR2RGB)     
