@@ -58,7 +58,7 @@ plt.imshow(img_dilation_2,cmap="gray")
 cv2.imshow("Dilation2",img_dilation_2)  # Doing Dilation Again after adding lines on Chess Board
 
 
-cv2.waitKey(0)
+
 
 # Role 2: Neve Turner: Find and Filter Contours
 
