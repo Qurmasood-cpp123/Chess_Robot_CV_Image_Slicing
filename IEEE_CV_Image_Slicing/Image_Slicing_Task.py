@@ -59,3 +59,46 @@ cv2.imshow("Dilation2",img_dilation_2)  # Doing Dilation Again after adding line
 
 
 cv2.waitKey(0)
+
+# Role 2: Neve Turner: Find and Filter Contours
+
+#Find all the contours from the dilated image
+board_contours, hierarchy = cv2.findContours(img_dilation_2, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+# List will store center coordinates and corner points of detected squares
+square_centers = list()
+
+board_squared = canny.copy()
+
+# Iterate through all detected contours
+for contour in board_contours:
+    if 4000 < cv2.contourArea(contour) < 20000:
+        epsilon = 0.02 * cv2.arcLength(contour, True) 
+        approx = cv2.approxPolyDP(contour, epsilon, True)
+
+        # Keeping only square contours 
+        if len(approx) == 4:
+            pts = [pt[0] for pt in approx] # Extracting coordinates
+
+            # Defining the points
+            pt1 = tuple(pts[0])
+            pt2 = tuple(pts[1])
+            pt3 = tuple(pts[2])
+            pt4 = tuple(pts[3])
+
+            x, y, w, h = cv2.boundingRect(contour)
+
+            # Calculating the center of the square
+            center_x= x+w/2
+            center_y= y+h/2
+
+            # Storing square information in list
+            square_centers.append([center_x, center_y, pt2, pt1, pt3, pt4])
+            
+            # Drawring the edges of the detected square 
+            cv2.drawContours(board_squared, [approx], -1, (255, 255, 0), 7)0
+
+plt.imshow(board_squared, cmap="grey")
+
+cv2.imshow("Dected squares", board_squared)
+cv2.waitKey(0)
