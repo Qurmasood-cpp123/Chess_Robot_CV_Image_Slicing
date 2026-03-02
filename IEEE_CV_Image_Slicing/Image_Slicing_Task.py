@@ -28,7 +28,7 @@ plt.imshow(otsu_binary,cmap="gray")
 cv2.imshow("OTSU_Threshold",otsu_binary)       # Now Converting Gaussian Blur to OTSU Threshold
 
 #Canny Edge Detection 
-canny=cv2.Canny(otsu_binary,20,255);
+canny=cv2.Canny(otsu_binary,20,255)
 plt.imshow(canny,cmap="gray")
 cv2.imshow("Canny_Edge",canny)           # Implementing Canny Edge Dectection on the Board
 
@@ -155,5 +155,57 @@ for cor in sorted_coordinates:
 
 
 cv2.imshow("Numbered squares", board_vis)
+
+# Role 5: debug and giving feedback
+debug_img = resize_img.copy()  
+
+# Draw hough lines in red
+if lines is not None:
+    for line in lines:
+        x1, y1, x2, y2 = line[0]
+        cv2.line(debug_img, (x1, y1), (x2, y2), (0, 0, 255), 1)
+
+# Draw detected square contours in green
+for contour in board_contours:
+    if 4000 < cv2.contourArea(contour) < 20000:
+        epsilon = 0.02 * cv2.arcLength(contour, True)
+        approx  = cv2.approxPolyDP(contour, epsilon, True)
+        if len(approx) == 4:
+            cv2.drawContours(debug_img, [approx], -1, (0, 255, 0), 2)
+
+# Draw square numbers in cyan
+for i, coord in enumerate(sorted_coordinates):
+    cx, cy = int(coord[0]), int(coord[1])
+    cv2.circle(debug_img, (cx, cy), 5, (255, 255, 0), -1)
+    cv2.putText(debug_img, str(i + 1), (cx - 20, cy - 10),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+
+# Small legend in the corner
+cv2.rectangle(debug_img, (5, 5), (230, 75), (0, 0, 0), -1)
+cv2.putText(debug_img, "RED   = Hough Lines",    (10, 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1)
+cv2.putText(debug_img, "GREEN = Square Contours", (10, 45), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+cv2.putText(debug_img, "CYAN  = Square Centers",  (10, 65), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 1)
+
+cv2.imshow("Role 5 - Debug Overlay", debug_img)
+
+# Print a test report 
+
+total = len(sorted_coordinates)
+print("\nTEST REPORT:")
+print(f"Squares detected : {total} / 64")
+
+if total == 64:
+    print("Result           : PASS ✓")
+elif total > 64:
+    print("Result           : WARN — too many squares detected")
+    print("Feedback         : Role 2 — tighten contour area filter (currently 4000-20000)")
+else:
+    print(f"Result           : WARN — {64 - total} squares missing")
+    print("Feedback         : Role 1 — try lowering Canny low threshold (currently 20)")
+    print("Feedback         : Role 2 — try widening contour area range")
+
+if lines is None:
+    print("Feedback         : Role 1 — No Hough lines found! Lower the threshold parameter")
+
 cv2.waitKey(0)
 cv2.destroyAllWindows()
