@@ -4,12 +4,12 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
-import pandas as pd
+#import pandas as pd
 
 
 #Storing the Chess Board Image
 img =cv2.imread("board1.jpg")
-resize_img=cv2.resize(img,(800,800))  # Changing The resolution
+resize_img=cv2.resize(img,(860,860))  # Changing The resolution
 
 rgb_image=cv2.cvtColor(resize_img,cv2.COLOR_BGR2RGB)     
 gry_image=cv2.cvtColor(resize_img,cv2.COLOR_BGR2GRAY)
@@ -96,9 +96,64 @@ for contour in board_contours:
             square_centers.append([center_x, center_y, pt2, pt1, pt3, pt4])
             
             # Drawring the edges of the detected square 
-            cv2.drawContours(board_squared, [approx], -1, (255, 255, 0), 7)0
+            cv2.drawContours(board_squared, [approx], -1, (255, 255, 0), 7)
 
 plt.imshow(board_squared, cmap="grey")
 
-cv2.imshow("Dected squares", board_squared)
+cv2.imshow("Dectected squares", board_squared)
+
+
+# Sorting coordinates
+sorted_coordinates = sorted(square_centers, key=lambda x: x[1], reverse=True)
+
+groups = []
+current_group = [sorted_coordinates[0]]
+
+for coord in sorted_coordinates[1:]:
+    if abs(coord[1] - current_group[-1][1]) < 50:
+        current_group.append(coord)
+    else:
+        groups.append(current_group)
+        current_group = [coord]
+
+groups.append(current_group) # Append the last group
+
+
+for group in groups: # Sort each group by the second index (column values)
+    group.sort(key=lambda x: x[0])
+
+
+sorted_coordinates = [coord for group in groups for coord in group] # Combine the groups back together
+
+# Finding undetected squares
+for num in range(len(sorted_coordinates)-1): 
+    if abs(sorted_coordinates[num][1] - sorted_coordinates[num+1][1])< 50 :
+        if sorted_coordinates[num+1][0] - sorted_coordinates[num][0] > 150:
+            x=(sorted_coordinates[num+1][0] + sorted_coordinates[num][0])/2
+            y=(sorted_coordinates[num+1][1] + sorted_coordinates[num][1])/2
+            p1=sorted_coordinates[num+1][5]
+            p2=sorted_coordinates[num+1][4]
+            p3=sorted_coordinates[num][3]
+            p4=sorted_coordinates[num][2]
+            sorted_coordinates.insert(num+1,[x,y,p1,p2,p3,p4])
+
+num_squares = len(sorted_coordinates)
+print(f"Total squares detected: {num_squares}")
+
+# Group into rows of 8 dynamically
+for i in range(0, num_squares, 8):
+    row = sorted_coordinates[i : i + 8]
+    # This prints the (x, y) center for each square in the row
+    print(f"Row {i//8}: {[[round(c[0]), round(c[1])] for c in row]}")
+
+board_vis = cv2.cvtColor(board_squared, cv2.COLOR_GRAY2BGR)
+square_num=1
+for cor in sorted_coordinates:
+  cv2.putText(img = board_vis,text = str(square_num),org = (int(cor[0])-30, int(cor[1])),
+    fontFace = cv2.FONT_HERSHEY_DUPLEX,fontScale = 1,color = (255, 246, 55),thickness = 1)
+  square_num+=1
+
+
+cv2.imshow("Numbered squares", board_vis)
 cv2.waitKey(0)
+cv2.destroyAllWindows()
