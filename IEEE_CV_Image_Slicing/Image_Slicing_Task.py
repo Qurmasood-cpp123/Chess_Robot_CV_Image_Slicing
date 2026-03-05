@@ -4,6 +4,8 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import json
+import os
 #import pandas as pd
 
 
@@ -206,6 +208,63 @@ else:
 
 if lines is None:
     print("Feedback         : Role 1 — No Hough lines found! Lower the threshold parameter")
+
+# Role 4: The Data Architect (Samuel / Infrastructure)
+# Saves every square as game_{id}_{move}_{square}.jpg and writes a JSON log.
+
+def save_dataset(image, grid_matrix, output_folder, game_id="001", move="001"):
+    squares_dir = os.path.join(output_folder, "squares")
+    os.makedirs(squares_dir, exist_ok=True)
+
+    log_entries = []
+    square_idx = 1
+
+    for row_idx, row in enumerate(grid_matrix):
+        for col_idx, square in enumerate(row):
+            center_x, center_y = square[0], square[1]
+            pts = [square[2], square[3], square[4], square[5]]
+
+            # Derive bounding box from the four corner points
+            xs = [int(p[0]) for p in pts]
+            ys = [int(p[1]) for p in pts]
+            x  = max(0, min(xs))
+            y  = max(0, min(ys))
+            x2 = min(image.shape[1], max(xs))
+            y2 = min(image.shape[0], max(ys))
+
+            crop = image[y:y2, x:x2]
+
+            filename = f"game_{game_id}_{move}_{square_idx:02d}.jpg"
+            cv2.imwrite(os.path.join(squares_dir, filename), crop)
+
+            log_entries.append({
+                "square":  square_idx,
+                "row":     row_idx,
+                "col":     col_idx,
+                "center":  [int(round(center_x)), int(round(center_y))],
+                "bbox":    {"x": int(x), "y": int(y), "w": int(x2 - x), "h": int(y2 - y)},
+                "status":  "saved" if crop.size > 0 else "empty",
+                "file":    filename
+            })
+
+            square_idx += 1
+
+    log = {"game_id": game_id, "move": move, "total_squares": square_idx - 1, "squares": log_entries}
+    json_path = os.path.join(output_folder, f"game_{game_id}_{move}_log.json")
+    with open(json_path, "w") as f:
+        json.dump(log, f, indent=2)
+
+    print(f"\nRole 4 — Saved {square_idx - 1} squares to '{squares_dir}'")
+    print(f"Role 4 — JSON log written to '{json_path}'")
+
+
+# Build 8x8 grid_matrix from sorted_coordinates and call save_dataset
+if len(sorted_coordinates) == 64:
+    grid_matrix = [sorted_coordinates[i:i+8] for i in range(0, 64, 8)]
+    save_dataset(resize_img, grid_matrix, output_folder="chess_squares_output")
+else:
+    print(f"\nRole 4 — Skipped: need 64 squares, got {len(sorted_coordinates)}")
+
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
