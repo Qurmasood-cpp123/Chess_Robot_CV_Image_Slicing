@@ -6,7 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import json
 import os
-#import pandas as pd
+
 
 
 #Storing the Chess Board Image
