@@ -17,29 +17,23 @@ rgb_image=cv2.cvtColor(resize_img,cv2.COLOR_BGR2RGB)
 gry_image=cv2.cvtColor(resize_img,cv2.COLOR_BGR2GRAY)
 
 plt.imshow(rgb_image) #Plotting the image on a graph
-cv2.imshow("Gray_Scale",gry_image)             #Converstion of RGB to GRAY Scale
 
 # Gaussian Blur Image Coversion
 gaussian_blur=cv2.GaussianBlur(gry_image,(11,11),0)
-plt.imshow(gaussian_blur,cmap="gray")        
-cv2.imshow("Gaussian_Blur",gaussian_blur)         # Now Converting Gray Scale to Gaussian Blur
+plt.imshow(gaussian_blur,cmap="gray") 
 
 #OTSU Threshold (Converting the image into binary that is Black and White)
 ret,otsu_binary=cv2.threshold(gaussian_blur,0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
 plt.imshow(otsu_binary,cmap="gray")
-cv2.imshow("OTSU_Threshold",otsu_binary)       # Now Converting Gaussian Blur to OTSU Threshold
 
 #Canny Edge Detection 
 canny=cv2.Canny(otsu_binary,20,255)
 plt.imshow(canny,cmap="gray")
-cv2.imshow("Canny_Edge",canny)           # Implementing Canny Edge Dectection on the Board
 
 #Dilation
 dil=np.ones((7,7),np.uint8)
 img_dilation=cv2.dilate(canny,dil,iterations=1)
 plt.imshow(img_dilation,cmap="gray")
-cv2.imshow("Dilation1",img_dilation)    # Dilating after Board Edge Detection
-
 
 #Hough Lines
 lines=cv2.HoughLinesP(img_dilation,1,np.pi/180,threshold=200,minLineLength=100,maxLineGap=50)
@@ -50,16 +44,13 @@ if lines is not None:
         cv2.line(img_dilation,(x1,y1),(x2,y2),(255,255,255),2)
 
 plt.imshow(img_dilation,cmap="gray")
-cv2.imshow("Hough_Lines",img_dilation)    # Adding the Lines on Chess Board 
+
 
 #Dilation Again after Hough Lines
 dil=np.ones((3,3),np.uint8)
 img_dilation_2=cv2.dilate(img_dilation,dil,iterations=1)
 
 plt.imshow(img_dilation_2,cmap="gray")
-cv2.imshow("Dilation2",img_dilation_2)  # Doing Dilation Again after adding lines on Chess Board
-
-
 
 
 # Role 2: Neve Turner: Find and Filter Contours
@@ -101,9 +92,6 @@ for contour in board_contours:
             cv2.drawContours(board_squared, [approx], -1, (255, 255, 0), 7)
 
 plt.imshow(board_squared, cmap="grey")
-
-cv2.imshow("Dectected squares", board_squared)
-
 
 # Sorting coordinates
 sorted_coordinates = sorted(square_centers, key=lambda x: x[1], reverse=True)
@@ -154,9 +142,6 @@ for cor in sorted_coordinates:
   cv2.putText(img = board_vis,text = str(square_num),org = (int(cor[0])-30, int(cor[1])),
     fontFace = cv2.FONT_HERSHEY_DUPLEX,fontScale = 1,color = (255, 246, 55),thickness = 1)
   square_num+=1
-
-
-cv2.imshow("Numbered squares", board_vis)
 
 # Role 5: debug and giving feedback
 debug_img = resize_img.copy()  
